@@ -1,0 +1,221 @@
+import time
+# quanta = 3, 21.7 sec turnaround, run 26.7
+# setting the quanta (in seconds)
+is_valid = True
+while is_valid:
+    try:
+        quanta = round(float(input("Quanta time (in seconds):")),1)
+        if quanta < .1:
+            print("Quanta value must be .1 or greater")
+            continue
+        is_valid = False
+    except:
+        print("You must enter a valid number")
+        continue
+# creating the first job
+def job1(leftoff, quanta):
+    # initial time when job started
+    unroundt = time.time()
+    # prints string from starting from whatever it left off last
+    for k in range(leftoff + 1,750001):
+        print("job 1 is at " + str(k))
+        # if job is finished
+        if (k == 750000):
+            # add time it stopped at to total runtime
+            runtime[0] += round(time.time() - unroundt, 3)
+            global finish1
+            # return that job1 is finished
+            finish1 = 1
+            return
+        # if time is greater than the set quanta
+        if round(time.time()- unroundt,1)> quanta:
+            # add this time to the total runtime
+            runtime[0] += round(time.time()- unroundt,1)
+            global stop1
+            # set where the job left off
+            stop1 = k
+            # return this position to the main program
+            return stop1
+
+# creating the second job
+def job2(leftoff2, quanta):
+    # initial time when job started
+    unroundt = time.time()
+    # prints string from starting from whatever it left off last
+    for k in range(leftoff2 + 1,500001):
+        print("job 2 is at " + str(k))
+        # if job is finished
+        if (k == 500000):
+            global finish2
+            # return that job1 is finished
+            finish2 = 1
+            # add time it stopped at to total runtime
+            runtime[1] += round(time.time() - unroundt, 3)
+            return
+        # if time is greater than the set quanta
+        if round(time.time()- unroundt,1) > quanta:
+            # add this time to the total runtime
+            runtime[1] += round(time.time()- unroundt,1)
+            global stop2
+            # set where the job left off
+            stop2 = k
+            # return this position to the main program
+            return stop2
+        
+# creating the third job
+def job3(leftoff3, quanta):
+    # initial time when job started
+    unroundt = time.time()
+    # prints string from starting from whatever it left off last
+    for k in range(leftoff3 + 1,250001):
+        print("job 3 is at " + str(k))
+        # if job is finished
+        if (k == 250000):
+            # add time it stopped at to total runtime
+            runtime[2] += round(time.time() - unroundt, 3)
+            global finish3
+            # return that job1 is finished
+            finish3 = 1
+            return 
+        # if time is greater than the set quanta
+        if round(time.time()-unroundt,1) > quanta:
+            # add this time to the total runtime
+            runtime[2] += round(time.time()- unroundt,1)
+            global stop3
+            # set where the job left off
+            stop3 = k
+            # return this position to the main program
+            return stop3
+
+timelist = []
+i = 0
+j1 = 0
+leftoff1 = -1
+leftoff2 = -1
+leftoff3 = -1
+stop1 = 0
+stop2 = 0
+stop3 = 0
+finish1 = 0
+finish2 = 0
+finish3 = 0
+runtime = [0,0,0]
+
+# this loop will run continuously
+while True:
+    # creating a list that contains the current time
+    timelist.append(time.time())
+    if i > 0:
+        # will run this if the time if on a different tenth of a second
+        if round(timelist[-1],1) != round(timelist[-2],1):
+            # gives fair share of quantum time to each variable (only if they still have jobs to run)
+            if (j1%3 == 0 and finish1 == 0):
+                job1(leftoff1,quanta)
+                leftoff1 = stop1
+            elif (j1%3 == 1 and finish2 == 0):
+                job2(leftoff2,quanta)
+                leftoff2 = stop2
+            elif(j1%3 == 2 and finish3 == 0):
+                job3(leftoff3,quanta)
+                leftoff3 = stop3
+            j1+= 1  
+    # if all three jobs are finished then this loop will break
+    if (finish1 == 1 and finish2 == 1 and finish3 == 1):
+        break
+     
+    i+= 1
+        
+
+# Round robin scheduling
+
+# Function to find the runtime and waiting time for all processes 
+def findTime(n, runtime, wt, tinterval): 
+    #setting the initial array, remaining burst_time
+    remain_time = [0] * n 
+
+    # Copy the burst time into remain burst time array 
+    for i in range(n): 
+        remain_time[i] = runtime[i]
+    
+    # Current time - use this to calculate turn around time of a process
+    t = 0
+
+    # Keep traversing processes in round robin manner until all of them are done 
+    while True: 
+        done = True
+
+        # Traverse all processes one by one repeatedly 
+        for i in range(n): 
+            # If burst time of a process is greater than 0 then only need to process further 
+            if (remain_time[i] > 0) : 
+                done = False # There is a pending process 
+                
+                
+                if (remain_time[i] > tinterval) : 
+                
+                    # Increase the value of t - showing how much time a process has been processed 
+                    t += tinterval 
+                    
+                    # Decrease the runtime of current process by time interval process ran for
+                    remain_time[i] -= tinterval 
+                    
+                # Ran if remaining time is less than time interval 
+                else: 
+                
+                    # Increase the value of t showing how much time a process has been processed 
+                    t = t + remain_time[i] 
+                    # Waiting time is current time minus time used by this process 
+                    wt[i] = t - runtime[i] 
+                    # The process is now fully executed - remaining time = 0
+                    remain_time[i] = 0
+                
+        # If all processes are done 
+        if (done == True): 
+            break
+            
+# Function to calculate turn around time 
+def findTurnAroundTime(n, runtime, wt, turnaround): 
+    
+    # Calculating turnaround time 
+    for i in range(n): 
+        turnaround[i] = runtime[i] + wt[i] 
+
+
+# Function to calculate average waiting 
+# and turn-around times. 
+def findavgTime(n, runtime, tinterval): 
+    #setting an array for wait time and turnaround time
+    wt = [0] * n 
+    turnaround = [0] * n 
+
+    # Function to find waiting time of all processes 
+    findTime(n, runtime, wt, tinterval) 
+
+    # Function to find turn around time for all processes 
+    findTurnAroundTime(n, runtime, wt, turnaround) 
+
+    # Display processes along with all details 
+    print("Process       Run Time        Wait Time", 
+                    "      Total Turn-Around Time") 
+    total_wt = 0
+    total_tat = 0
+    total_runtime = 0
+    for i in range(n): 
+
+        total_wt = total_wt + wt[i] 
+        total_tat = total_tat + turnaround[i]
+        total_runtime = total_runtime + runtime[i] 
+        print(str(i + 1) + "\t\t%.3f" %runtime[i] +"\t\t%.3f"%wt[i] + "\t\t%.3f"%turnaround[i]) 
+
+    print("\nAverage waiting time = %.3f "%(total_wt /n) + " seconds") 
+    print("Average turn around time = %.3f "% (total_tat / n) + " seconds") 
+    print("Total runtime = %.1f"% (total_runtime) + " seconds")
+    
+ 
+# time it takes to run each process
+tinterval = quanta
+# how much running time each process gets before moving to next process
+n = len(runtime) 
+findavgTime(n, runtime, tinterval) 
+print("Process 1 is " + str(round(runtime[0]/runtime[2],2)) + " times longer than process 3")
+print("Process 2 is " + str(round(runtime[1]/runtime[2],2)) + " times longer than process 3")    
